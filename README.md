@@ -1,6 +1,6 @@
-# ZAMN Docker Server
+# ZAMN Half-Life: Cross Product Multiplayer Docker Server
 
-Docker Compose setup for Zombies Ate My Neighbors HLMP multiplayer mod (HLDS-based).
+Docker Compose setup for Zombies Ate My Neighbors Half-Life: Cross Product Multiplayer (HLDS-based).
 
 ## Quickstart
 
