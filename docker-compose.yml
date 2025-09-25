@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  zamn-server:
+    image: gameservermanagers/steamcmd:latest
+    container_name: zamn-server
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${SERVER_PATH}/steam-app:/home/steam/.local/share/Steam
+      - ${SERVER_PATH}/server-data:/data
+      - ./start-server.sh:/start-server.sh:ro
+    working_dir: /data
+    entrypoint: ["/bin/bash", "/start-server.sh"]
+    ports:
+      - "27015:27015/udp"
+      - "27015:27015/tcp"
