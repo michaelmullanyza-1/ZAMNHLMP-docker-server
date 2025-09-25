@@ -32,6 +32,6 @@ docker-compose up -d
 
 ## Server Details
 
-* Runs on UDP/TCP port 27037
+* Runs on UDP/TCP port 27015
 * Default map: crossfire
 * Max players: 16
