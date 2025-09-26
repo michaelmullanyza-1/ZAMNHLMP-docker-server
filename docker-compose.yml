@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   zamn-server:
-    image: gameservermanagers/steamcmd:latest
+    image: gameservermanagers/steamcmd:ubuntu-22.04
     container_name: zamn-server
     restart: unless-stopped
     environment:
