@@ -23,8 +23,6 @@ if [ -f "$METAMOD_PLUGINS_FILE" ]; then
     cp "$METAMOD_PLUGINS_FILE" "$METAMOD_PLUGINS_FILE.bak"
 fi
 
-
-
 # Run SteamCMD updates
 #steamcmd +force_install_dir "$DATA_DIR" +login anonymous +app_update 90 validate +quit
 steamcmd +force_install_dir "$DATA_DIR" +login anonymous +app_update 3807180 validate +quit
@@ -44,11 +42,9 @@ if [ -f "$METAMOD_PLUGINS_FILE.bak" ]; then
     mv "$METAMOD_PLUGINS_FILE.bak" "$METAMOD_PLUGINS_FILE"
 fi
 
-
-
 # Set correct AppID
 echo "3416640" > "$STEAM_APP_FILE"
 chmod 444 "$STEAM_APP_FILE"
 
 # Launch HLDS with mod
-exec "$DATA_DIR/hlds_run" -game zamnhlmp -port 27036 +map crossfire +maxplayers 16
+exec "$DATA_DIR/hlds_run" -game zamnhlmp -port 27015 +map crossfire +maxplayers 16
