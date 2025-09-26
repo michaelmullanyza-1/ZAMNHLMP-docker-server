@@ -33,14 +33,13 @@ docker-compose up -d
 - Max players: 16
 - Steam AppID is correctly set to `3416640`
 
+5. Persistence
+
+- Between reboots, your server.cfg, liblist.gam and metamod plugins.ini will be preserved. Everything else will be wiped and rebuilt.
+
 ## Notes
 
 - Server data, mods, and configs are stored under the folder specified in `SERVER_PATH`.
 - `start-server.sh` handles downloading/updating the ZAMN dedicated server (AppID 3807180).
-- Custom `server.cfg` is preserved across restarts.
 - No Steam login is required; downloads are anonymous.
-
-5. TO DO
-
-- A better way to preserve other config files across reboots.
 
