@@ -12,6 +12,7 @@ services:
       - ${SERVER_PATH}/steam-app:/home/steam/.local/share/Steam
       - ${SERVER_PATH}/server-data:/data
       - ./start-server.sh:/start-server.sh:ro
+      - ${SERVER_PATH}/dumps:/tmp/dumps/
     working_dir: /data
     entrypoint: ["/bin/bash", "/start-server.sh"]
     ports:
