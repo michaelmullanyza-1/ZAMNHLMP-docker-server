@@ -47,4 +47,5 @@ echo "3416640" > "$STEAM_APP_FILE"
 chmod 444 "$STEAM_APP_FILE"
 
 # Launch HLDS with mod
-exec "$DATA_DIR/hlds_run" -game zamnhlmp -port 27015 +map crossfire +maxplayers 16
+export LD_LIBRARY_PATH="$DATA_DIR:$LD_LIBRARY_PATH"
+exec "$DATA_DIR/hlds_run" -game zamnhlmp -port 27036 +map crossfire +maxplayers 16 +mp_timelimit 25
