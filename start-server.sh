@@ -7,6 +7,7 @@ STEAM_APP_FILE="$DATA_DIR/steam_appid.txt"
 CONFIG_FILE="$MOD_FOLDER/server.cfg"
 LIBLIST_FILE="$MOD_FOLDER/liblist.gam"
 METAMOD_PLUGINS_FILE="$MOD_FOLDER/addons/metamod/plugins.ini"
+METAMOD_DLL_FILE="$MOD_FOLDER/addons/metamod/dlls/metamod.so"
 
 # Backup config if it exists
 if [ -f "$CONFIG_FILE" ]; then
@@ -22,6 +23,12 @@ fi
 if [ -f "$METAMOD_PLUGINS_FILE" ]; then
     cp "$METAMOD_PLUGINS_FILE" "$METAMOD_PLUGINS_FILE.bak"
 fi
+
+# Backup DLL if it exists
+if [ -f "$METAMOD_DLL_FILE" ]; then
+    cp "$METAMOD_DLL_FILE" "$METAMOD_DLL_FILE.bak"
+fi
+
 
 # Run SteamCMD updates
 #steamcmd +force_install_dir "$DATA_DIR" +login anonymous +app_update 90 validate +quit
@@ -41,6 +48,12 @@ fi
 if [ -f "$METAMOD_PLUGINS_FILE.bak" ]; then
     mv "$METAMOD_PLUGINS_FILE.bak" "$METAMOD_PLUGINS_FILE"
 fi
+
+# Restore DLL
+if [ -f "$METAMOD_DLL_FILE.bak" ]; then
+    mv "$METAMOD_DLL_FILE.bak" "$METAMOD_DLL_FILE"
+fi
+
 
 # Set correct AppID
 echo "3416640" > "$STEAM_APP_FILE"
