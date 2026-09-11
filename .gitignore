@@ -1,3 +1,9 @@
-# Ignore downloaded server data
+# Local environment and secrets
+.env
+config/rcon.cfg
+
+# Runtime data (downloaded game files, logs, bans)
+data/
 server-data/
 steam-app/
+dumps/

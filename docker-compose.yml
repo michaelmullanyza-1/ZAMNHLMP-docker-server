@@ -1,20 +1,48 @@
-version: "3.9"
+name: zamn
+
+x-runtime: &runtime
+  image: ${STEAMCMD_IMAGE:-gameservermanagers/steamcmd@sha256:223bf8691bd2662bfa05ed5e3112651fc0f86491ca4590afc0e362983a3e1e6d}
+  user: "${PUID:-1000}:${PGID:-1000}"
+  init: true
+  working_dir: /srv
+  environment:
+    HOME: /srv/steam-home
+    LANG: C.UTF-8
+    SERVER_PORT: "${SERVER_PORT:-27015}"
+    START_MAP: "${START_MAP:-crossfire}"
+    MAX_PLAYERS: "${MAX_PLAYERS:-16}"
+    SERVER_APPID: "${SERVER_APPID:-3807180}"
+    UPDATE_ON_START: "${UPDATE_ON_START:-1}"
+    UPDATE_TIMEOUT_SECONDS: "${UPDATE_TIMEOUT_SECONDS:-600}"
+    RUNTIME_IMAGE: "${STEAMCMD_IMAGE:-gameservermanagers/steamcmd@sha256:223bf8691bd2662bfa05ed5e3112651fc0f86491ca4590afc0e362983a3e1e6d}"
+  volumes:
+    - ${SERVER_PATH:?SERVER_PATH must be set in .env}/data:/srv
+    - ${SERVER_PATH:?SERVER_PATH must be set in .env}/config:/config:ro
+    - ./scripts:/scripts:ro
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
 
 services:
-  zamn-server:
-    image: gameservermanagers/steamcmd:ubuntu-22.04
-    container_name: zamn-server
+  server:
+    <<: *runtime
+    container_name: ${CONTAINER_NAME:-zamn-server}
+    entrypoint: ["/bin/bash", "/scripts/boot.sh"]
     restart: unless-stopped
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-    volumes:
-      - ${SERVER_PATH}/steam-app:/home/steam/.local/share/Steam
-      - ${SERVER_PATH}/server-data:/data
-      - ./start-server.sh:/start-server.sh:ro
-      - ${SERVER_PATH}/dumps:/tmp/dumps/
-    working_dir: /data
-    entrypoint: ["/bin/bash", "/start-server.sh"]
+    stop_signal: SIGINT
+    stop_grace_period: 30s
     ports:
-      - "27015:27015/udp"
-      - "27015:27015/tcp"
+      - "${SERVER_PORT:-27015}:${SERVER_PORT:-27015}/udp"
+      - "${SERVER_PORT:-27015}:${SERVER_PORT:-27015}/tcp"
+    healthcheck:
+      test: ["CMD", "/bin/bash", "/scripts/healthcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      start_period: 12m
+      retries: 3
