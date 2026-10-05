@@ -2,10 +2,12 @@
 # Container entrypoint: check Steam for updates, then launch the game server.
 set -Eeuo pipefail
 umask 0027
+source "$(dirname -- "${BASH_SOURCE[0]}")/release-helpers.sh"
 cd /srv
 rm -f /tmp/zamn-serving
 mkdir -p releases persistent "$HOME"
 : "${UPDATE_TIMEOUT_SECONDS:=600}"
+: "${RUNTIME_IMAGE:?RUNTIME_IMAGE is required}"
 [[ "$UPDATE_TIMEOUT_SECONDS" =~ ^[1-9][0-9]*$ ]] ||
     { echo "UPDATE_TIMEOUT_SECONDS must be a positive integer" >&2; exit 1; }
 
@@ -76,7 +78,7 @@ prune() {
         [[ -d "$path" && ! -L "$path" && -f "$path/.managed-release" ]] || continue
         name="${path##*/}"
         [[ "$name" == "$active" || "$name" == "$previous" || "$name" == "$pending" ]] && continue
-        rm -rf -- "$path"
+        remove_release "$name"
     done
 }
 
@@ -108,30 +110,37 @@ if [[ "$manual_rollback" == 0 && ( "${UPDATE_ON_START:-1}" == 1 || -z "$active" 
         printf '%s\n' "$pending" > pending
     fi
     prune
+    # Image changes and forced updates need a new snapshot even at the same build.
+    active_build=""
+    if [[ -n "$active" && "$force" == 0 &&
+          "$RUNTIME_IMAGE" == "$(<"releases/$active/.image")" ]]; then
+        active_build="$(<"releases/$active/.build")"
+    fi
     echo "Checking Steam for dedicated-server AppID ${SERVER_APPID:-3807180} updates on container start."
-    RELEASE_ID="$pending" VALIDATE="$validate" \
+    RELEASE_ID="$pending" VALIDATE="$validate" FORCE="$force" ACTIVE_BUILD="$active_build" \
         timeout --signal=TERM --kill-after=10 "$UPDATE_TIMEOUT_SECONDS" \
         /bin/bash /scripts/update-release.sh &
     child=$!
-    if wait "$child"; then
-        child=""
-        printf '%s\n' "${RUNTIME_IMAGE:?RUNTIME_IMAGE is required}" > "releases/$pending/.image"
+    if wait "$child"; then result=0; else result=$?; fi
+    child=""
+    if [[ "$result" == 0 ]]; then
+        printf '%s\n' "$RUNTIME_IMAGE" > "releases/$pending/.image"
         build="$(<"releases/$pending/.build")"
-        if [[ -n "$active" && "$build" == "$(<"releases/$active/.build")" &&
-              "$RUNTIME_IMAGE" == "$(<"releases/$active/.image")" && "$force" == 0 ]]; then
-            echo "Already current at build $build."
-            rm -rf -- "releases/$pending"
-            rm pending
-            pending=""
-        elif [[ -f rejected-build && "$(<rejected-build)" == "$build|$RUNTIME_IMAGE" && "$force" == 0 ]]; then
+        if [[ -f rejected-build && "$(<rejected-build)" == "$build|$RUNTIME_IMAGE" && "$force" == 0 ]]; then
             echo "Build $build previously failed startup; keeping the known-good release." >&2
+            remove_release "$pending"
+            rm -f pending
+            pending=""
         else
             candidate="$pending"
         fi
+    elif [[ "$result" == 10 ]]; then
+        echo "Already current at build $active_build."
+        remove_release "$pending"
+        rm -f pending
+        pending=""
     else
-        result=$?
-        child=""
-        echo "WARNING: Steam update failed or timed out (exit $result); starting the installed release. Pending download is retained." >&2
+        echo "WARNING: Steam update failed or timed out (exit $result); starting the installed release. Staged download is retained." >&2
     fi
 elif [[ "$manual_rollback" == 0 ]]; then
     echo "Automatic updates explicitly disabled by UPDATE_ON_START."
